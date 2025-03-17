@@ -8,9 +8,15 @@ import org.bukkit.event.player.PlayerLoginEvent;
 
 public class PlayerLogin implements Listener {
 
+    private final LightMaker plugin;
+
+    public PlayerLogin(LightMaker plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler(priority = EventPriority.NORMAL)
     public void PlayerLoginEvent(PlayerLoginEvent e) {
         //load player with recipes when the player logs in.
-        e.getPlayer().discoverRecipes(LightMaker.recipeList);
+        e.getPlayer().discoverRecipes(plugin.getRecipeList());
     }
 }

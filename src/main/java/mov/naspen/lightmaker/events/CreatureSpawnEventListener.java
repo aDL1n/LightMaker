@@ -1,5 +1,6 @@
 package mov.naspen.lightmaker.events;
 
+import mov.naspen.lightmaker.LightMaker;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Light;
@@ -7,11 +8,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CreatureSpawnEventListener implements Listener {
+
+    private final LightMaker plugin;
+
+    public CreatureSpawnEventListener(LightMaker plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler
     public void onCreatureSpawnEvent(CreatureSpawnEvent e) {
         if(

@@ -3,27 +3,31 @@ package mov.naspen.lightmaker.util;
 import mov.naspen.lightmaker.LightMaker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 
 public class HandWatcher {
 
+    private final LightMaker plugin;
 
+    public HandWatcher(LightMaker plugin) {
+        this.plugin = plugin;
+    }
 
-    public static void startWatching(Plugin plugin){
-
+    public void startWatching(){
         new BukkitRunnable() {
             public void run() {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if(Lights.isLight(p.getInventory().getItemInMainHand()) || Lights.isLight(p.getInventory().getItemInOffHand())){
-                        LightMaker.projector.add(p);
+                    if(plugin.getLightManager().isLight(p.getInventory().getItemInMainHand())
+                            || plugin.getLightManager().isLight(p.getInventory().getItemInOffHand())
+                    ){
+                        plugin.getProjector().add(p);
                     }else{
-                        LightMaker.projector.remove(p);
+                        plugin.getProjector().remove(p);
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, LightMaker.watchPeriod);
+        }.runTaskTimerAsynchronously(this.plugin, 0L, this.plugin.watchPeriod);
     }
 }
 

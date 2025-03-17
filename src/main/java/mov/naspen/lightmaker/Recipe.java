@@ -1,12 +1,10 @@
 package mov.naspen.lightmaker;
 
-import mov.naspen.lightmaker.util.Lights;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.StonecuttingRecipe;
-import org.bukkit.plugin.Plugin;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,25 +12,34 @@ import java.util.logging.Level;
 
 public class Recipe {
 
-    public static void addRecipes(Plugin plugin){
-        String recipe_type = plugin.getConfig().getString("recipe_type");
-        assert recipe_type != null;
+    private final LightMaker plugin;
 
-        if(recipe_type.equals("bottled-light")){
-            addBottlingRecipe(plugin);
-        }else if(recipe_type.equals("shapeless")){
-            addShapelessRecipe(plugin);
-        }
-
+    public Recipe(LightMaker plugin) {
+        this.plugin = plugin;
     }
 
-    public static void addShapelessRecipe(Plugin plugin){
+    public void addRecipes(){
+        String recipe_type = plugin.getConfig().getString("recipe_type", "shapeless"); // Default value if getString == null
+
+        switch (recipe_type) {
+            case "bottled-light":
+                addBottlingRecipe();
+                break;
+            case "shapeless":
+                addShapelessRecipe();
+                break;
+        }
+    }
+
+    public void addShapelessRecipe(){
         plugin.getLogger().log(Level.INFO,"Adding Shapeless Light Block recipe!");
         //create a new unique key
         NamespacedKey key = new NamespacedKey(plugin, "light_block_shapeless");
-        LightMaker.recipeList.add(key);
+        plugin.getRecipeList().add(key);
         //creates a new recipe with the default light quantity as the output quantity
-        ShapelessRecipe recipe = new ShapelessRecipe(key, Lights.lights.get(15).asQuantity(plugin.getConfig().getInt("default_light_quantity")));
+        ShapelessRecipe recipe = new ShapelessRecipe(
+                key, plugin.getLightManager().getLightsList().get(15).asQuantity(plugin.getConfig().getInt("default_light_quantity"))
+        );
         //places the light_ingredients configuration list into a String List
         List<String> light_ingredients = plugin.getConfig().getStringList("light_ingredients");
         //ensures that the list can fit into a crafting grid
@@ -53,20 +60,20 @@ public class Recipe {
         Bukkit.addRecipe(recipe);
     }
 
-    public static void addBottlingRecipe(Plugin plugin){
+    public void addBottlingRecipe(){
         plugin.getLogger().log(Level.INFO,"Adding Light Block bottling recipe!");
         //the name/key of the group used for collecting the recipes in the recipe book.
         String bottlingGroup = "light_block_bottling";
         //loops through each item in the 'lights_to_bottle' section and creates a recipe with the defined quantity in a group.
         for(String ingredient : Objects.requireNonNull(plugin.getConfig().getConfigurationSection("light_ingredients_to_bottle")).getKeys(false)){
             //if the quantity for the current entry is zero or doesn't exist, use the default quantity.
-            int q = plugin.getConfig().getInt("light_ingredients_to_bottle." + ingredient + ".quantity") != 0 ?
-                    plugin.getConfig().getInt("light_ingredients_to_bottle." + ingredient + ".quantity") :
-                    plugin.getConfig().getInt("default_light_quantity");
+            int q = plugin.getConfig().getInt("light_ingredients_to_bottle." + ingredient + ".quantity") != 0
+                    ? plugin.getConfig().getInt("light_ingredients_to_bottle." + ingredient + ".quantity")
+                    : plugin.getConfig().getInt("default_light_quantity");
             //create a new unique key with the ingredient name.
             NamespacedKey key = new NamespacedKey(plugin, "light_block_bottling_" + ingredient);
             //add new key to recipe list for on player login unlocking
-            LightMaker.recipeList.add(key);
+            plugin.getRecipeList().add(key);
             Material itemToBottle;
 
             try {
@@ -79,7 +86,8 @@ public class Recipe {
             }
             //create a shapeless recipe with the defined quantity as the output quantity.
             ShapelessRecipe bottleRecipe = new ShapelessRecipe(key,
-                    Lights.lights.get(15).asQuantity(q));
+                    plugin.getLightManager().getLightsList().get(15).asQuantity(q)
+            );
 
             //add a glass bottle to the recipe
             bottleRecipe.addIngredient(Material.GLASS_BOTTLE);
@@ -94,15 +102,11 @@ public class Recipe {
         plugin.getLogger().log(Level.INFO,"Light Block bottling recipes have been added!");
     }
 
-    public static void addLevelRecipe(Plugin plugin){
+    public void addLevelRecipe(){
         for (int i = 15; i >= 0; i--){
             NamespacedKey key = new NamespacedKey(plugin, "light_count_" + i);
-            StonecuttingRecipe recipe = new StonecuttingRecipe(key, Lights.lights.get(i), Material.LIGHT);
+            StonecuttingRecipe recipe = new StonecuttingRecipe(key, plugin.getLightManager().getLightsList().get(i), Material.LIGHT);
             Bukkit.getServer().addRecipe(recipe);
         }
     }
-
-
-
-
 }

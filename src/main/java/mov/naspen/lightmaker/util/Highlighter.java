@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public class Highlighter {
 
-    protected LightMaker plugin;
-    private Map<UUID, ParticleRender> particleMapper = new HashMap<>();
+    private final LightMaker plugin;
+    private final Map<UUID, ParticleRender> particleMapper = new HashMap<>();
     private BukkitTask projectorTask;
 
     public Highlighter(LightMaker plugin) {
@@ -30,10 +30,10 @@ public class Highlighter {
             @Override
             public void run() {
                 for (ParticleRender visual : particleMapper.values()) {
-                    visual.update();
+                    visual.render();
                 }
             }
-        }.runTaskTimer(plugin, updateRate, LightMaker.watchPeriod);
+        }.runTaskTimerAsynchronously(plugin, updateRate, this.plugin.watchPeriod);
     }
 
     public void add(Player player) {
